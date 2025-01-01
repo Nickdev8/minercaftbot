@@ -1,7 +1,5 @@
-// Import necessary classes from discord.js
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
-
 const server = require('./mcserver_control.js');
 
 // Create a new client instance with necessary intents
@@ -14,65 +12,22 @@ const client = new Client({
     ]
 });
 
-client.on("messageCreate", (message) => {
-    if (message.author.bot) return; // Ignore bot messages
-    if (message.content.includes("@here") || message.content.includes("@everyone") || message.type === "REPLY") return;
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+});
 
-    if (message.mentions.has(client.user.id) && message.content.toLowerCase().includes("start")) {
-        (async () => {
-            try {
-                response = await server.checkStatus();
-                if (response != 0){
-                    const statusMessage = {
-                        "-1": "Busy",
-                        "0": "Stopped",
-                        "1": "Stopping",
-                        "2": "Starting",
-                        "3": "Running",
-                    }[response] || "Unknown";
-                    
-                    message.channel.send("An error occurred: The server is currently not stopped");
-                    message.channel.send("The server is currently: " + statusMessage)
-                }
-                else{
-                    await server.startServer();
-                    message.channel.send("Started server")
-                }
-            } catch (error) {
-                message.channel.send("An error occurred:", error);
-            }
-        })();
-    }
-    else if (message.mentions.has(client.user.id) && message.content.toLowerCase().includes("stop")) {
-        (async () => {
-            try {
-                response = await server.checkStatus();
-                if (response != 3){
-                    const statusMessage = {
-                        "-1": "Busy",
-                        "0": "Stopped",
-                        "1": "Stopping",
-                        "2": "Starting",
-                        "3": "Running",
-                    }[response] || "Unknown";
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isCommand()) return;
 
-                    message.channel.send("An error occurred: The server is currently not Running");
-                    message.channel.send("The server is currently: " + statusMessage)
-                }
-                else{
-                    await server.stopServer();
-                    message.channel.send("Stopped server")
-                }
-            } catch (error) {
-                message.channel.send("An error occurred:", error);
-            }
-        })();
-    }
-    // Check if the bot is mentioned
-    else if (message.mentions.has(client.user.id)) {
-        (async () => {
-            try {
-                response = await server.checkStatus();
+    const { commandName } = interaction;
+
+    if (commandName === 'start') {
+        try {
+            console.log('Received start command');
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            console.log(`Server status: ${response}`);
+            if (response != 0) {
                 const statusMessage = {
                     "-1": "Busy",
                     "0": "Stopped",
@@ -80,14 +35,56 @@ client.on("messageCreate", (message) => {
                     "2": "Starting",
                     "3": "Running",
                 }[response] || "Unknown";
-                message.channel.send("The server is currently: " + statusMessage)
-            } catch (error) {
-                message.channel.send("An error occurred:", error);
+
+                await interaction.editReply(`An error occurred: The server is currently not stopped. The server is currently: ${statusMessage}`);
+            } else {
+                console.log('Starting server...');
+                await server.startServer();
+                await interaction.editReply('Started server');
+                console.log('Server started');
             }
-        })();
+        } catch (error) {
+            console.error(`Error in start command: ${error.message}`);
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
+    } else if (commandName === 'stop') {
+        try {
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            if (response != 3) {
+                const statusMessage = {
+                    "-1": "Busy",
+                    "0": "Stopped",
+                    "1": "Stopping",
+                    "2": "Starting",
+                    "3": "Running",
+                }[response] || "Unknown";
+
+                await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
+            } else {
+                await server.stopServer();
+                await interaction.editReply('Stopped server');
+            }
+        } catch (error) {
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
+    } else if (commandName === 'status') {
+        try {
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            const statusMessage = {
+                "-1": "Busy",
+                "0": "Stopped",
+                "1": "Stopping",
+                "2": "Starting",
+                "3": "Running",
+            }[response] || "Unknown";
+            await interaction.editReply(`The server is currently: ${statusMessage}`);
+        } catch (error) {
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     }
 });
-
 
 // Log the bot in
 client.login(token);
