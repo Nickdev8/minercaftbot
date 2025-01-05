@@ -17,8 +17,8 @@ I created this bot to simplify the management of my Minecraft server. Managing a
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/minecraft-server-control-bot.git
-    cd minecraft-server-control-bot
+    git clone https://github.com/Nickdev8/minercaftbot.git
+    cd minercaftbot
     ```
 
 2. Install dependencies:
@@ -26,7 +26,7 @@ I created this bot to simplify the management of my Minecraft server. Managing a
     npm install
     ```
 
-3. Create a [config.json](http://_vscodecontentref_/0) file in the root directory with the following content:
+3. Create a [config.json](https://github.com/Nickdev8/minercaftbot/blob/main/config.json) file in the root directory with the following content:
     ```json
     {
         "": "This is the configuration for the Discord bot api",
@@ -54,14 +54,17 @@ I created this bot to simplify the management of my Minecraft server. Managing a
 
 #### Commands
 - `/start` - Start the Minecraft server
+- `/begin` - Alias for start command
 - `/stop` - Stop the Minecraft server
 - `/status` - Get the status of the Minecraft server
 - `/restart` - Restart the Minecraft server
+- `/giveerror` - Simulate an error
 
 ### Example Usage
 1. Open your Discord server and type `/start` to start the server.
 2. Use `/status` to check if the server is running.
 3. Type `/stop` to stop the server when you are done.
+4. Type `/giveerror` to simulate an error and see how the bot handles it.
 
 ### Contributing
 Feel free to fork this project and submit pull requests. Any contributions are welcome!

@@ -7,6 +7,10 @@ const commands = [
         description: 'Start the Minecraft server',
     },
     {
+        name: 'begin',
+        description: 'Alias for start command',
+    },
+    {
         name: 'stop',
         description: 'Stop the Minecraft server',
     },
@@ -16,7 +20,11 @@ const commands = [
     },
     {
         name: 'restart',
-        description: 'Restarts the Minecraft server',
+        description: 'Restart the Minecraft server',
+    },
+    {
+        name: 'giveerror',
+        description: 'Simulate an error',
     },
 ];
 

@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { token, clientId } = require('./config.json');
 const server = require('./mcserver_control.js');
 
 // Create a new client instance with necessary intents
@@ -12,6 +12,23 @@ const client = new Client({
     ]
 });
 
+// Validate configuration
+function validateConfig(config) {
+    const requiredFields = ['token', 'clientId', 'guildId', 'API_URL', 'API_KEY', 'INSTANCE_ID', 'DAEMON_ID'];
+    for (const field of requiredFields) {
+        if (!config[field]) {
+            throw new Error(`Missing required config field: ${field}`);
+        }
+    }
+}
+
+try {
+    validateConfig(require('./config.json'));
+} catch (error) {
+    console.error(`Configuration error: ${error.message}`);
+    process.exit(1);
+}
+
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -21,7 +38,7 @@ client.on('interactionCreate', async interaction => {
 
     const { commandName } = interaction;
 
-    if (commandName === 'start') {
+    if (commandName === 'start' || commandName === 'begin') {
         try {
             console.log('Received start command');
             await interaction.deferReply(); // Defer the reply to give more time
@@ -108,6 +125,14 @@ client.on('interactionCreate', async interaction => {
         } catch (error) {
             console.error(`Error in restart command: ${error.message}`);
             await interaction.editReply(`An error occurred: ${error.message}`);
+        }
+    } else if (commandName === 'giveerror') {
+        try {
+            console.log('Received giveError command');
+            throw new Error('This is a simulated error.');
+        } catch (error) {
+            console.error(`Simulated error: ${error.message}`);
+            await interaction.reply(`An error occurred: ${error.message}`);
         }
     }
 });

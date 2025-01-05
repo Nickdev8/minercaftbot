@@ -1,12 +1,6 @@
 const axios = require('axios');
 const { API_URL, API_KEY, INSTANCE_ID, DAEMON_ID } = require('./config.json');
 
-//localhost:23333/api"; //API_URL Update if your MCSManager API runs elsewhere
-//API_KEY Replace with your actual API key
-//INSTANCE_ID Replace with the instance UUID
-//DAEMON_ID Replace with your daemon ID
-
-
 // Helper to make authorized API requests
 async function apiRequest(endpoint, method = "GET", params = {}, data = null) {
     try {
@@ -22,19 +16,18 @@ async function apiRequest(endpoint, method = "GET", params = {}, data = null) {
     } catch (error) {
         console.error(`Error in API Request: ${error.message}`);
         if (error.response) {
-            console.error(error.response.data);
+            console.error("Response Data:", error.response.data);
+            console.error("Response Status:", error.response.status);
         }
         throw error;
     }
 }
 
-
 // Start the server
 async function startServer() {
     console.log("Starting server...");
     try {
-        const response = await apiRequest("/protected_instance/open", "GET", {
-        });
+        const response = await apiRequest("/protected_instance/open", "GET", {});
         console.log("Server started:", response);
     } catch (error) {
         console.error("Failed to start server:", error.message);
@@ -45,8 +38,7 @@ async function startServer() {
 async function stopServer() {
     console.log("Stopping server...");
     try {
-        const response = await apiRequest("/protected_instance/stop", "GET", {
-        });
+        const response = await apiRequest("/protected_instance/stop", "GET", {});
         console.log("Server stopped:", response);
     } catch (error) {
         console.error("Failed to stop server:", error.message);
@@ -57,8 +49,7 @@ async function stopServer() {
 async function checkStatus() {
     console.log("Checking server status...");
     try {
-        const response = await apiRequest("/instance", "GET", {
-        });
+        const response = await apiRequest("/instance", "GET", {});
         const status = response.data.status;
         const statusMessage = {
             "-1": "Busy",
@@ -74,7 +65,7 @@ async function checkStatus() {
     }
 }
 
-// Start the server
+// Restart the server
 async function restartServer() {
     console.log("Restarting server...");
     try {
@@ -86,14 +77,13 @@ async function restartServer() {
 }
 
 // Get server log
-async function GetLog() {
+async function getLog() {
     console.log("Checking server log...");
     try {
-        const response = await apiRequest("/protected_instance/outputlog", "GET", {
-        });
+        const response = await apiRequest("/protected_instance/outputlog", "GET", {});
         console.log(`Server Log: ${response.status}`);
     } catch (error) {
-        console.error("Failed to get server status:", error.message);
+        console.error("Failed to get server log:", error.message);
     }
 }
 
@@ -105,10 +95,10 @@ async function GetLog() {
     // await checkStatus();
 })();
 
-
 module.exports = {
     checkStatus,
     startServer,
     stopServer,
-    restartServer
+    restartServer,
+    getLog
 };
