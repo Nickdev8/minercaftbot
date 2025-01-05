@@ -1,10 +1,11 @@
 const axios = require('axios');
+const { API_URL, API_KEY, INSTANCE_ID, DAEMON_ID } = require('./config.json');
 
-// Configuration
-const API_URL = "http://localhost:23333/api"; // Update if your MCSManager API runs elsewhere
-const API_KEY = "f98f3a9378dc4b7791631dab626f3ab4"; // Replace with your actual API key
-const INSTANCE_ID = "4829f864c97a42379e845582bafe5669"; // Replace with the instance UUID
-const DAEMON_ID = "c547f21e9c0644848b0fadda43f569c0"; // Replace with your daemon ID
+//localhost:23333/api"; //API_URL Update if your MCSManager API runs elsewhere
+//API_KEY Replace with your actual API key
+//INSTANCE_ID Replace with the instance UUID
+//DAEMON_ID Replace with your daemon ID
+
 
 // Helper to make authorized API requests
 async function apiRequest(endpoint, method = "GET", params = {}, data = null) {
@@ -73,6 +74,17 @@ async function checkStatus() {
     }
 }
 
+// Start the server
+async function restartServer() {
+    console.log("Restarting server...");
+    try {
+        const response = await apiRequest("/protected_instance/restart", "GET", {});
+        console.log("Server restarted:", response);
+    } catch (error) {
+        console.error("Failed to restart server:", error.message);
+    }
+}
+
 // Get server log
 async function GetLog() {
     console.log("Checking server log...");
@@ -97,5 +109,6 @@ async function GetLog() {
 module.exports = {
     checkStatus,
     startServer,
-    stopServer
+    stopServer,
+    restartServer
 };

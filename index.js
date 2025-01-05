@@ -83,6 +83,32 @@ client.on('interactionCreate', async interaction => {
         } catch (error) {
             await interaction.editReply(`An error occurred: ${error.message}`);
         }
+    } else if (commandName === 'restart') {
+        try {
+            console.log('Received restart command');
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            console.log(`Server status: ${response}`);
+            if (response != 3) {
+                const statusMessage = {
+                    "-1": "Busy",
+                    "0": "Stopped",
+                    "1": "Stopping",
+                    "2": "Starting",
+                    "3": "Running",
+                }[response] || "Unknown";
+
+                await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
+            } else {
+                console.log('Restarting server...');
+                await server.restartServer();
+                await interaction.editReply('Restarted server');
+                console.log('Server restarted');
+            }
+        } catch (error) {
+            console.error(`Error in restart command: ${error.message}`);
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     }
 });
 

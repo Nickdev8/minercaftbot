@@ -14,6 +14,10 @@ const commands = [
         name: 'status',
         description: 'Get the status of the Minecraft server',
     },
+    {
+        name: 'restart',
+        description: 'Restarts the Minecraft server',
+    },
 ];
 
 const rest = new REST({ version: '10' }).setToken(token);
