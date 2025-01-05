@@ -1,0 +1,13 @@
+{
+	"": "This is the configuration for the Discord bot api",
+	"token": "x",
+	"clientId": "x",
+	"guildId": "x",
+
+	"":"This is the configuration for the mcsManager api",
+	"API_URL": "http://localhost:23333/api",
+	"API_KEY": "x",
+	"INSTANCE_ID": "x", 
+	"DAEMON_ID": "x" 
+
+}
