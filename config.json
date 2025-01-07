@@ -8,6 +8,6 @@
 	"API_URL": "http://localhost:23333/api",
 	"API_KEY": "x",
 	"INSTANCE_ID": "x", 
-	"DAEMON_ID": "x" 
-
+	"DAEMON_ID": "x", 
+	"SERVERIP": "x"
 }

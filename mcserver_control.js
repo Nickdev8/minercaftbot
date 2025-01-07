@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { API_URL, API_KEY, INSTANCE_ID, DAEMON_ID } = require('./config.json');
+const { API_URL, API_KEY, INSTANCE_ID, DAEMON_ID, SERVERIP } = require('./config.json');
 
 // Helper to make authorized API requests
 async function apiRequest(endpoint, method = "GET", params = {}, data = null) {

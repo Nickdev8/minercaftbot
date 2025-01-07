@@ -32,7 +32,6 @@ try {
 }
 
 // Add these variables to store server info and preferences
-let serverIP = ''; // Replace with your actual server IP
 let mentionPreferences = new Map();
 let statusMessage = null;
 

@@ -38,7 +38,10 @@ I created this bot to simplify the management of my Minecraft server. Managing a
         "API_URL": "http://localhost:23333/api",
         "API_KEY": "your-mcsmanager-api-key",
         "INSTANCE_ID": "your-instance-id",
-        "DAEMON_ID": "your-daemon-id"
+        "DAEMON_ID": "your-daemon-id",
+
+        "": "This is the configuration for the Minecraft server",
+        "SERVER_IP": "your-minecraft-server-ip"
     }
     ```
 
@@ -59,12 +62,16 @@ I created this bot to simplify the management of my Minecraft server. Managing a
 - `/status` - Get the status of the Minecraft server
 - `/restart` - Restart the Minecraft server
 - `/giveerror` - Simulate an error
+- `/getip` - Get the Minecraft server IP address
+- `/togglementions` - Toggle whether you want to be mentioned when the server starts or players join
 
 ### Example Usage
 1. Open your Discord server and type `/start` to start the server.
 2. Use `/status` to check if the server is running.
-3. Type `/stop` to stop the server when you are done.
-4. Type `/giveerror` to simulate an error and see how the bot handles it.
+3. Use `/getip` to get the server IP address.
+4. Use `/togglementions` to enable/disable notifications.
+5. Type `/stop` to stop the server when you are done.
+6. Type `/giveerror` to simulate an error and see how the bot handles it.
 
 ### Contributing
 Feel free to fork this project and submit pull requests. Any contributions are welcome!
