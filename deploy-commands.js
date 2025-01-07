@@ -26,6 +26,14 @@ const commands = [
         name: 'giveerror',
         description: 'Simulate an error',
     },
+    {
+        name: 'getip',
+        description: 'Get the Minecraft server IP address'
+    },
+    {
+        name: 'togglementions',
+        description: 'Toggle whether you want to be mentioned when the server starts or players join'
+    }
 ];
 
 const rest = new REST({ version: '10' }).setToken(token);

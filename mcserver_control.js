@@ -87,6 +87,21 @@ async function getLog() {
     }
 }
 
+// Add these functions to mcserver_control.js
+async function getPlayerCount() {
+    try {
+        const response = await apiRequest("/instance", "GET", {});
+        // Parse player count from instance data
+        return {
+            online: response.data.info.currentPlayers || 0,
+            max: response.data.info.maxPlayers || 0
+        };
+    } catch (error) {
+        console.error("Failed to get player count:", error.message);
+        return { online: 0, max: 0 };
+    }
+}
+
 (async () => {
     await checkStatus();
     // await startServer();
@@ -100,5 +115,6 @@ module.exports = {
     startServer,
     stopServer,
     restartServer,
-    getLog
+    getLog,
+    getPlayerCount
 };
