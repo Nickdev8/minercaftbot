@@ -1,6 +1,7 @@
 const { REST, Routes } = require('discord.js');
 const { clientId, guildId, token } = require('./config.json');
 
+// Define the commands to be deployed
 const commands = [
     {
         name: 'start',
@@ -36,12 +37,14 @@ const commands = [
     }
 ];
 
+// Create a new REST instance and set the token
 const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
     try {
         console.log('Started refreshing application (/) commands.');
 
+        // Deploy the commands to the specified guild
         await rest.put(
             Routes.applicationGuildCommands(clientId, guildId),
             { body: commands },
