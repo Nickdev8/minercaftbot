@@ -31,8 +31,7 @@ try {
     process.exit(1);
 }
 
-// Variables to store server info and preferences
-const SERVER_IP = 'play.yourserver.com'; // Replace with your actual server IP
+// Add these variables to store server info and preferences
 let mentionPreferences = new Map();
 let statusMessage = null;
 
@@ -41,6 +40,7 @@ try {
     const prefsPath = path.join(__dirname, 'preferences.json');
     if (fs.existsSync(prefsPath)) {
         const data = JSON.parse(fs.readFileSync(prefsPath));
+        serverIP = data.serverIP || '';
         mentionPreferences = new Map(Object.entries(data.mentions || {}));
     }
 } catch (error) {
@@ -51,6 +51,7 @@ try {
 function savePreferences() {
     const prefsPath = path.join(__dirname, 'preferences.json');
     const data = {
+        serverIP,
         mentions: Object.fromEntries(mentionPreferences)
     };
     fs.writeFileSync(prefsPath, JSON.stringify(data, null, 2));
@@ -64,7 +65,7 @@ async function updateStatusMessage(channel) {
         const statusEmoji = status === 3 ? '🟢' : '🔴';
         const content = `
 ${statusEmoji} **Minecraft Server Status**
-IP: ${SERVER_IP}
+IP: ${serverIP || 'Not set'}
 Status: ${status === 3 ? 'Online' : 'Offline'}
 Players: ${playerCount.online}/${playerCount.max}
         `.trim();
@@ -79,7 +80,6 @@ Players: ${playerCount.online}/${playerCount.max}
     }
 }
 
-// Event: Bot is ready
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
     
@@ -98,149 +98,125 @@ client.on('ready', async () => {
     updateStatusMessage(statusChannel);
 });
 
-// Event: Interaction create (command received)
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
 
     if (commandName === 'start' || commandName === 'begin') {
-        await handleStartCommand(interaction);
+        try {
+            console.log('Received start command');
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            console.log(`Server status: ${response}`);
+            if (response != 0) {
+                const statusMessage = {
+                    "-1": "Busy",
+                    "0": "Stopped",
+                    "1": "Stopping",
+                    "2": "Starting",
+                    "3": "Running",
+                }[response] || "Unknown";
+
+                await interaction.editReply(`An error occurred: The server is currently not stopped. The server is currently: ${statusMessage}`);
+            } else {
+                console.log('Starting server...');
+                await server.startServer();
+                await interaction.editReply('Started server');
+                console.log('Server started');
+            }
+        } catch (error) {
+            console.error(`Error in start command: ${error.message}`);
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     } else if (commandName === 'stop') {
-        await handleStopCommand(interaction);
+        try {
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            if (response != 3) {
+                const statusMessage = {
+                    "-1": "Busy",
+                    "0": "Stopped",
+                    "1": "Stopping",
+                    "2": "Starting",
+                    "3": "Running",
+                }[response] || "Unknown";
+
+                await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
+            } else {
+                await server.stopServer();
+                await interaction.editReply('Stopped server');
+            }
+        } catch (error) {
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     } else if (commandName === 'status') {
-        await handleStatusCommand(interaction);
+        try {
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            const statusMessage = {
+                "-1": "Busy",
+                "0": "Stopped",
+                "1": "Stopping",
+                "2": "Starting",
+                "3": "Running",
+            }[response] || "Unknown";
+            await interaction.editReply(`The server is currently: ${statusMessage}`);
+        } catch (error) {
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     } else if (commandName === 'restart') {
-        await handleRestartCommand(interaction);
+        try {
+            console.log('Received restart command');
+            await interaction.deferReply(); // Defer the reply to give more time
+            const response = await server.checkStatus();
+            console.log(`Server status: ${response}`);
+            if (response != 3) {
+                const statusMessage = {
+                    "-1": "Busy",
+                    "0": "Stopped",
+                    "1": "Stopping",
+                    "2": "Starting",
+                    "3": "Running",
+                }[response] || "Unknown";
+
+                await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
+            } else {
+                console.log('Restarting server...');
+                await server.restartServer();
+                await interaction.editReply('Restarted server');
+                console.log('Server restarted');
+            }
+        } catch (error) {
+            console.error(`Error in restart command: ${error.message}`);
+            await interaction.editReply(`An error occurred: ${error.message}`);
+        }
     } else if (commandName === 'giveerror') {
-        await handleGiveErrorCommand(interaction);
+        try {
+            console.log('Received giveError command');
+            throw new Error('This is a simulated error.');
+        } catch (error) {
+            console.error(`Simulated error: ${error.message}`);
+            await interaction.reply(`An error occurred: ${error.message}`);
+        }
+    } else if (commandName === 'setip') {
+        const ip = interaction.options.getString('ip');
+        serverIP = ip;
+        savePreferences();
+        await interaction.reply(`Server IP has been set to: ${ip}`);
+        await updateStatusMessage();
     } else if (commandName === 'togglementions') {
-        await handleToggleMentionsCommand(interaction);
+        const userId = interaction.user.id;
+        const currentValue = mentionPreferences.get(userId) || false;
+        mentionPreferences.set(userId, !currentValue);
+        savePreferences();
+        await interaction.reply(
+            `You will ${!currentValue ? 'now' : 'no longer'} be mentioned when the server starts or players join.`
+        );
     } else if (commandName === 'getip') {
-        await handleGetIpCommand(interaction);
+        await interaction.reply(`Server IP: ${SERVER_IP}`);
     }
 });
-
-// Command handlers
-async function handleStartCommand(interaction) {
-    try {
-        console.log('Received start command');
-        await interaction.deferReply(); // Defer the reply to give more time
-        const response = await server.checkStatus();
-        console.log(`Server status: ${response}`);
-        if (response != 0) {
-            const statusMessage = {
-                "-1": "Busy",
-                "0": "Stopped",
-                "1": "Stopping",
-                "2": "Starting",
-                "3": "Running",
-            }[response] || "Unknown";
-
-            await interaction.editReply(`An error occurred: The server is currently not stopped. The server is currently: ${statusMessage}`);
-        } else {
-            console.log('Starting server...');
-            await server.startServer();
-            await interaction.editReply('Started server');
-            console.log('Server started');
-        }
-    } catch (error) {
-        console.error(`Error in start command: ${error.message}`);
-        await interaction.editReply(`An error occurred: ${error.message}`);
-    }
-}
-
-async function handleStopCommand(interaction) {
-    try {
-        await interaction.deferReply(); // Defer the reply to give more time
-        const response = await server.checkStatus();
-        if (response != 3) {
-            const statusMessage = {
-                "-1": "Busy",
-                "0": "Stopped",
-                "1": "Stopping",
-                "2": "Starting",
-                "3": "Running",
-            }[response] || "Unknown";
-
-            await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
-        } else {
-            await server.stopServer();
-            await interaction.editReply('Stopped server');
-        }
-    } catch (error) {
-        await interaction.editReply(`An error occurred: ${error.message}`);
-    }
-}
-
-async function handleStatusCommand(interaction) {
-    try {
-        await interaction.deferReply(); // Defer the reply to give more time
-        const response = await server.checkStatus();
-        const statusMessage = {
-            "-1": "Busy",
-            "0": "Stopped",
-            "1": "Stopping",
-            "2": "Starting",
-            "3": "Running",
-        }[response] || "Unknown";
-        await interaction.editReply(`The server is currently: ${statusMessage}`);
-    } catch (error) {
-        await interaction.editReply(`An error occurred: ${error.message}`);
-    }
-}
-
-async function handleRestartCommand(interaction) {
-    try {
-        console.log('Received restart command');
-        await interaction.deferReply(); // Defer the reply to give more time
-        const response = await server.checkStatus();
-        console.log(`Server status: ${response}`);
-        if (response != 3) {
-            const statusMessage = {
-                "-1": "Busy",
-                "0": "Stopped",
-                "1": "Stopping",
-                "2": "Starting",
-                "3": "Running",
-            }[response] || "Unknown";
-
-            await interaction.editReply(`An error occurred: The server is currently not running. The server is currently: ${statusMessage}`);
-        } else {
-            console.log('Restarting server...');
-            await server.restartServer();
-            await interaction.editReply('Restarted server');
-            console.log('Server restarted');
-        }
-    } catch (error) {
-        console.error(`Error in restart command: ${error.message}`);
-        await interaction.editReply(`An error occurred: ${error.message}`);
-    }
-}
-
-async function handleGiveErrorCommand(interaction) {
-    try {
-        console.log('Received giveError command');
-        throw new Error('This is a simulated error.');
-    } catch (error) {
-        console.error(`Simulated error: ${error.message}`);
-        await interaction.reply(`An error occurred: ${error.message}`);
-    }
-}
-
-async function handleToggleMentionsCommand(interaction) {
-    const userId = interaction.user.id;
-    const currentValue = mentionPreferences.get(userId) || false;
-    mentionPreferences.set(userId, !currentValue);
-    savePreferences();
-    await interaction.reply(
-        `You will ${!currentValue ? 'now' : 'no longer'} be mentioned when the server starts or players join.`
-    );
-}
-
-async function handleGetIpCommand(interaction) {
-    await interaction.reply(`Server IP: ${SERVER_IP}`);
-}
 
 // Add server start notification
 const originalStartServer = server.startServer;

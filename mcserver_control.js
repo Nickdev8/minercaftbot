@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { API_URL, API_KEY, INSTANCE_ID, DAEMON_ID, SERVERIP } = require('./config.json');
 
-// Helper function to make authorized API requests
+// Helper to make authorized API requests
 async function apiRequest(endpoint, method = "GET", params = {}, data = null) {
     try {
         const response = await axios({
@@ -16,13 +16,14 @@ async function apiRequest(endpoint, method = "GET", params = {}, data = null) {
     } catch (error) {
         console.error(`Error in API Request: ${error.message}`);
         if (error.response) {
-            console.error(`Response data: ${JSON.stringify(error.response.data)}`);
+            console.error("Response Data:", error.response.data);
+            console.error("Response Status:", error.response.status);
         }
         throw error;
     }
 }
 
-// Function to start the Minecraft server
+// Start the server
 async function startServer() {
     console.log("Starting server...");
     try {
@@ -33,7 +34,7 @@ async function startServer() {
     }
 }
 
-// Function to stop the Minecraft server
+// Stop the server
 async function stopServer() {
     console.log("Stopping server...");
     try {
@@ -44,7 +45,7 @@ async function stopServer() {
     }
 }
 
-// Function to check the status of the Minecraft server
+// Check server status
 async function checkStatus() {
     console.log("Checking server status...");
     try {
@@ -64,7 +65,7 @@ async function checkStatus() {
     }
 }
 
-// Function to restart the Minecraft server
+// Restart the server
 async function restartServer() {
     console.log("Restarting server...");
     try {
@@ -75,18 +76,18 @@ async function restartServer() {
     }
 }
 
-// Function to get the server log
+// Get server log
 async function getLog() {
     console.log("Checking server log...");
     try {
         const response = await apiRequest("/protected_instance/outputlog", "GET", {});
-        console.log("Server log:", response);
+        console.log(`Server Log: ${response.status}`);
     } catch (error) {
         console.error("Failed to get server log:", error.message);
     }
 }
 
-// Function to get the player count on the Minecraft server
+// Add these functions to mcserver_control.js
 async function getPlayerCount() {
     try {
         const response = await apiRequest("/instance", "GET", {});
@@ -101,7 +102,14 @@ async function getPlayerCount() {
     }
 }
 
-// Export the functions to be used in other modules
+(async () => {
+    await checkStatus();
+    // await startServer();
+    // await checkStatus();
+    // await stopServer();
+    // await checkStatus();
+})();
+
 module.exports = {
     checkStatus,
     startServer,
